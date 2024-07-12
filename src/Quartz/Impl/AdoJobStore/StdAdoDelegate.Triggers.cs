@@ -198,8 +198,8 @@ public partial class StdAdoDelegate
 
                 while (await rs.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    string jobName = rs.GetString(ColumnJobName)!;
-                    string jobGroup = rs.GetString(ColumnJobGroup)!;
+                    string jobName = rs.GetGuid(ColumnJobName).ToString();
+                    string jobGroup = rs.GetInt32(ColumnJobGroup).ToString();
                     string trigName = rs.GetString(ColumnTriggerName)!;
                     string trigGroup = rs.GetString(ColumnTriggerGroup)!;
                     int priority = Convert.ToInt32(rs[ColumnPriority], CultureInfo.InvariantCulture);
@@ -280,8 +280,8 @@ public partial class StdAdoDelegate
         AddCommandParameter(cmd, "schedulerName", schedName);
         AddCommandParameter(cmd, "triggerName", trigger.Key.Name);
         AddCommandParameter(cmd, "triggerGroup", trigger.Key.Group);
-        AddCommandParameter(cmd, "triggerJobName", trigger.JobKey.Name);
-        AddCommandParameter(cmd, "triggerJobGroup", trigger.JobKey.Group);
+        AddCommandParameter(cmd, "triggerJobName", new Guid(trigger.JobKey.Name));
+        AddCommandParameter(cmd, "triggerJobGroup", Convert.ToInt32(trigger.JobKey.Group));
         AddCommandParameter(cmd, "triggerDescription", trigger.Description);
         AddCommandParameter(cmd, "triggerNextFireTime", GetDbDateTimeValue(trigger.GetNextFireTimeUtc()));
         AddCommandParameter(cmd, "triggerPreviousFireTime", GetDbDateTimeValue(trigger.GetPreviousFireTimeUtc()));
@@ -355,8 +355,8 @@ public partial class StdAdoDelegate
         using var cmd = PrepareCommand(conn, ReplaceTablePrefix(sqlUpdate));
 
         AddCommandParameter(cmd, "schedulerName", schedName);
-        AddCommandParameter(cmd, "triggerJobName", trigger.JobKey.Name);
-        AddCommandParameter(cmd, "triggerJobGroup", trigger.JobKey.Group);
+        AddCommandParameter(cmd, "triggerJobName", new Guid(trigger.JobKey.Name));
+        AddCommandParameter(cmd, "triggerJobGroup", Convert.ToInt32(trigger.JobKey.Group));
         AddCommandParameter(cmd, "triggerDescription", trigger.Description);
         AddCommandParameter(cmd, "triggerNextFireTime", GetDbDateTimeValue(trigger.GetNextFireTimeUtc()));
         AddCommandParameter(cmd, "triggerPreviousFireTime", GetDbDateTimeValue(trigger.GetPreviousFireTimeUtc()));
@@ -573,8 +573,8 @@ public partial class StdAdoDelegate
         using var cmd = PrepareCommand(conn, ReplaceTablePrefix(SqlUpdateJobTriggerStates));
         AddCommandParameter(cmd, "schedulerName", schedName);
         AddCommandParameter(cmd, "state", state);
-        AddCommandParameter(cmd, "jobName", jobKey.Name);
-        AddCommandParameter(cmd, "jobGroup", jobKey.Group);
+        AddCommandParameter(cmd, "jobName", new Guid(jobKey.Name));
+        AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(jobKey.Group));
 
         return await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -590,8 +590,8 @@ public partial class StdAdoDelegate
         using var cmd = PrepareCommand(conn, ReplaceTablePrefix(SqlUpdateJobTriggerStatesFromOtherState));
         AddCommandParameter(cmd, "schedulerName", schedName);
         AddCommandParameter(cmd, "state", state);
-        AddCommandParameter(cmd, "jobName", jobKey.Name);
-        AddCommandParameter(cmd, "jobGroup", jobKey.Group);
+        AddCommandParameter(cmd, "jobName", new Guid(jobKey.Name));
+        AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(jobKey.Group));
         AddCommandParameter(cmd, "oldState", oldState);
 
         return await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
@@ -680,8 +680,8 @@ public partial class StdAdoDelegate
                     return null;
                 }
 
-                jobName = rs.GetString(ColumnJobName)!;
-                jobGroup = rs.GetString(ColumnJobGroup)!;
+                jobName = rs.GetGuid(ColumnJobName).ToString();
+                jobGroup = rs.GetInt32(ColumnJobGroup).ToString();
                 description = rs.GetString(ColumnDescription);
                 triggerType = rs.GetString(ColumnTriggerType)!;
                 calendarName = rs.GetString(ColumnCalendarName);
@@ -855,8 +855,8 @@ public partial class StdAdoDelegate
         {
             string state = rs.GetString(ColumnTriggerState)!;
             object nextFireTime = rs[ColumnNextFireTime];
-            string jobName = rs.GetString(ColumnJobName)!;
-            string jobGroup = rs.GetString(ColumnJobGroup)!;
+            string jobName = rs.GetGuid(ColumnJobName).ToString();
+            string jobGroup = rs.GetInt32(ColumnJobGroup).ToString();
 
             var nft = GetDateTimeFromDbValue(nextFireTime);
 
@@ -1138,15 +1138,15 @@ public partial class StdAdoDelegate
         AddCommandParameter(cmd, "triggerState", state);
         if (job != null)
         {
-            AddCommandParameter(cmd, "triggerJobName", trigger.JobKey.Name);
-            AddCommandParameter(cmd, "triggerJobGroup", trigger.JobKey.Group);
+            AddCommandParameter(cmd, "triggerJobName", new Guid(trigger.JobKey.Name));
+            AddCommandParameter(cmd, "triggerJobGroup", Convert.ToInt32(trigger.JobKey.Group));
             AddCommandParameter(cmd, "triggerJobStateful", GetDbBooleanValue(job.ConcurrentExecutionDisallowed));
             AddCommandParameter(cmd, "triggerJobRequestsRecovery", GetDbBooleanValue(job.RequestsRecovery));
         }
         else
         {
-            AddCommandParameter(cmd, "triggerJobName", null);
-            AddCommandParameter(cmd, "triggerJobGroup", null);
+            AddCommandParameter(cmd, "triggerJobName", Guid.NewGuid());
+            AddCommandParameter(cmd, "triggerJobGroup", 0);
             AddCommandParameter(cmd, "triggerJobStateful", GetDbBooleanValue(false));
             AddCommandParameter(cmd, "triggerJobRequestsRecovery", GetDbBooleanValue(false));
         }
@@ -1170,8 +1170,8 @@ public partial class StdAdoDelegate
         AddCommandParameter(ps, "firedTime", GetDbDateTimeValue(timeProvider.GetUtcNow()));
         AddCommandParameter(ps, "scheduledTime", GetDbDateTimeValue(trigger.GetNextFireTimeUtc()));
         AddCommandParameter(ps, "entryState", state);
-        AddCommandParameter(ps, "jobName", trigger.JobKey.Name);
-        AddCommandParameter(ps, "jobGroup", trigger.JobKey.Group);
+        AddCommandParameter(ps, "jobName", new Guid(trigger.JobKey.Name));
+        AddCommandParameter(ps, "jobGroup", Convert.ToInt32(trigger.JobKey.Group));
         AddCommandParameter(ps, "isNonConcurrent", GetDbBooleanValue(job.ConcurrentExecutionDisallowed));
         AddCommandParameter(ps, "requestsRecover", GetDbBooleanValue(job.RequestsRecovery));
         AddCommandParameter(ps, "entryId", trigger.FireInstanceId);
@@ -1220,7 +1220,7 @@ public partial class StdAdoDelegate
             {
                 rec.JobDisallowsConcurrentExecution = GetBooleanFromDbValue(rs[ColumnIsNonConcurrent]);
                 rec.JobRequestsRecovery = GetBooleanFromDbValue(rs[ColumnRequestsRecovery]);
-                rec.JobKey = new JobKey(rs.GetString(ColumnJobName)!, rs.GetString(ColumnJobGroup)!);
+                rec.JobKey = new JobKey(rs.GetGuid(ColumnJobName).ToString(), rs.GetInt32(ColumnJobGroup).ToString());
             }
 
             lst.Add(rec);
@@ -1243,14 +1243,14 @@ public partial class StdAdoDelegate
         {
             cmd = PrepareCommand(conn, ReplaceTablePrefix(SqlSelectFiredTriggersOfJob));
             AddCommandParameter(cmd, "schedulerName", schedName);
-            AddCommandParameter(cmd, "jobName", jobName);
-            AddCommandParameter(cmd, "jobGroup", groupName);
+            AddCommandParameter(cmd, "jobName", new Guid(jobName));
+            AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(groupName));
         }
         else
         {
             cmd = PrepareCommand(conn, ReplaceTablePrefix(SqlSelectFiredTriggersOfJobGroup));
             AddCommandParameter(cmd, "schedulerName", schedName);
-            AddCommandParameter(cmd, "jobGroup", groupName);
+            AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(groupName));
         }
 
         using var rs = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -1269,7 +1269,7 @@ public partial class StdAdoDelegate
             {
                 rec.JobDisallowsConcurrentExecution = GetBooleanFromDbValue(rs[ColumnIsNonConcurrent]);
                 rec.JobRequestsRecovery = GetBooleanFromDbValue(rs[ColumnRequestsRecovery]);
-                rec.JobKey = new JobKey(rs.GetString(ColumnJobName)!, rs.GetString(ColumnJobGroup)!);
+                rec.JobKey = new JobKey(rs.GetGuid(ColumnJobName).ToString(), rs.GetInt32(ColumnJobGroup).ToString());
             }
 
             lst.Add(rec);
@@ -1304,7 +1304,7 @@ public partial class StdAdoDelegate
             {
                 rec.JobDisallowsConcurrentExecution = GetBooleanFromDbValue(rs[ColumnIsNonConcurrent]);
                 rec.JobRequestsRecovery = GetBooleanFromDbValue(rs[ColumnRequestsRecovery]);
-                rec.JobKey = new JobKey(rs.GetString(ColumnJobName)!, rs.GetString(ColumnJobGroup)!);
+                rec.JobKey = new JobKey(rs.GetGuid(ColumnJobName).ToString(), rs.GetInt32(ColumnJobGroup).ToString());
             }
 
             lst.Add(rec);
@@ -1402,8 +1402,8 @@ public partial class StdAdoDelegate
     {
         using var cmd = PrepareCommand(conn, ReplaceTablePrefix(SqlSelectNumTriggersForJob));
         AddCommandParameter(cmd, "schedulerName", schedName);
-        AddCommandParameter(cmd, "jobName", jobKey.Name);
-        AddCommandParameter(cmd, "jobGroup", jobKey.Group);
+        AddCommandParameter(cmd, "jobName", new Guid(jobKey.Name));
+        AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(jobKey.Group));
 
         return Convert.ToInt32(await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false));
     }
@@ -1420,8 +1420,8 @@ public partial class StdAdoDelegate
         using (var cmd = PrepareCommand(conn, ReplaceTablePrefix(SqlSelectTriggersForJob)))
         {
             AddCommandParameter(cmd, "schedulerName", schedName);
-            AddCommandParameter(cmd, "jobName", jobKey.Name);
-            AddCommandParameter(cmd, "jobGroup", jobKey.Group);
+            AddCommandParameter(cmd, "jobName", new Guid(jobKey.Name));
+            AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(jobKey.Group));
 
             using (var rs = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
             {

@@ -7,6 +7,7 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Authors>Lewis Zou, Marko Lahma, Quartz.NET</Authors>
     <PackageReadmeFile>aspnet-core-integration.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

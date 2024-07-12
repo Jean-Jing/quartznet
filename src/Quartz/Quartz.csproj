@@ -2,9 +2,11 @@
 
   <PropertyGroup>
     <AssemblyTitle>Quartz.NET</AssemblyTitle>
-    <TargetFrameworks>net472;netstandard2.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageReadmeFile>quick-start.md</PackageReadmeFile>
+    <PackageId>$(AssemblyName)</PackageId>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <!--
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     -->
@@ -21,6 +23,10 @@
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <Reference Include="System.Configuration" />
     <Reference Include="System.Runtime.Remoting" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+    <PackageReference Include="Ical.Net" />
   </ItemGroup>
 
   <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">

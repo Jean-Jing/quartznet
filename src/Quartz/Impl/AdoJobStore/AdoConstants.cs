@@ -146,6 +146,11 @@ public class AdoConstants
     public const string TriggerTypeDailyTimeInterval = "DAILY_I";
 
     /// <summary>
+    /// Custom Calendar Trigger type.
+    /// </summary>
+    public const string TriggerTypeCustomCalendar = "CAL_RR";
+
+    /// <summary>
     /// A general blob Trigger type.
     /// </summary>
     public const string TriggerTypeBlob = "BLOB";

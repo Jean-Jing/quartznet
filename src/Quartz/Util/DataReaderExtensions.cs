@@ -60,4 +60,15 @@ internal static class DataReaderExtensions
         object columnValue = reader[columnName];
         return Convert.ToDecimal(columnValue, CultureInfo.InvariantCulture);
     }
+
+    public static Guid GetGuid(this IDataReader reader, string columnName)
+    {
+        object columnValue = reader[columnName];
+        if (columnValue == DBNull.Value)
+        {
+            return Guid.Empty;
+        }
+
+        return (Guid)columnValue;
+    }
 }

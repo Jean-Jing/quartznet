@@ -81,13 +81,19 @@ public class JobHistoryDelegate
         JobExecutionException? jobException,
         CancellationToken cancellationToken = default)
     {
+        var jobGroupId = Convert.ToInt32(context.JobDetail.Key.Group);
+        if (jobGroupId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(jobGroupId), "Job group id must be greater than or equal to 0.");
+        }
+
         var sql = AdoJobStoreUtil.ReplaceTablePrefix(SqlInsertJobExecuted, tablePrefix, "");
         using var connection = GetConnection(IsolationLevel.ReadUncommitted);
         await using var command = Delegate.PrepareCommand(connection, sql);
         Delegate.AddCommandParameter(command, "schedulerName", context.Scheduler.SchedulerName);
         Delegate.AddCommandParameter(command, "instanceName", context.Scheduler.SchedulerInstanceId);
-        Delegate.AddCommandParameter(command, "jobName", context.JobDetail.Key.Name);
-        Delegate.AddCommandParameter(command, "jobGroup", context.JobDetail.Key.Group);
+        Delegate.AddCommandParameter(command, "jobName", new Guid(context.JobDetail.Key.Name));
+        Delegate.AddCommandParameter(command, "jobGroup", jobGroupId);
         Delegate.AddCommandParameter(command, "triggerName", context.Trigger.Key.Name);
         Delegate.AddCommandParameter(command, "triggerGroup", context.Trigger.Key.Group);
         Delegate.AddCommandParameter(command, "scheduledTime", Delegate.GetDbDateTimeValue(context.ScheduledFireTimeUtc));

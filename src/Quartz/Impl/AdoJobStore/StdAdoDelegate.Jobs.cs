@@ -31,8 +31,8 @@ public partial class StdAdoDelegate
         AddCommandParameter(cmd, "jobStateful", GetDbBooleanValue(job.PersistJobDataAfterExecution));
         AddCommandParameter(cmd, "jobRequestsRecovery", GetDbBooleanValue(job.RequestsRecovery));
         AddCommandParameter(cmd, "jobDataMap", jobData, DbProvider.Metadata.DbBinaryType);
-        AddCommandParameter(cmd, "jobName", job.Key.Name);
-        AddCommandParameter(cmd, "jobGroup", job.Key.Group);
+        AddCommandParameter(cmd, "jobName", new Guid(job.Key.Name));
+        AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(job.Key.Group));
 
         return await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -45,8 +45,8 @@ public partial class StdAdoDelegate
     {
         using var cmd = PrepareCommand(conn, ReplaceTablePrefix(SqlSelectTriggersForJob));
         AddCommandParameter(cmd, "schedulerName", schedName);
-        AddCommandParameter(cmd, "jobName", jobKey.Name);
-        AddCommandParameter(cmd, "jobGroup", jobKey.Group);
+        AddCommandParameter(cmd, "jobName",  new Guid(jobKey.Name));
+        AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(jobKey.Group));
         using var rs = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         List<TriggerKey> list = new List<TriggerKey>(10);
         while (await rs.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -72,8 +72,8 @@ public partial class StdAdoDelegate
         }
 
         AddCommandParameter(cmd, "schedulerName", schedName);
-        AddCommandParameter(cmd, "jobName", jobKey.Name);
-        AddCommandParameter(cmd, "jobGroup", jobKey.Group);
+        AddCommandParameter(cmd, "jobName", new Guid(jobKey.Name));
+        AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(jobKey.Group));
         return await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -85,8 +85,8 @@ public partial class StdAdoDelegate
     {
         using var cmd = PrepareCommand(conn, ReplaceTablePrefix(SqlSelectJobExistence));
         AddCommandParameter(cmd, "schedulerName", schedName);
-        AddCommandParameter(cmd, "jobName", jobKey.Name);
-        AddCommandParameter(cmd, "jobGroup", jobKey.Group);
+        AddCommandParameter(cmd, "jobName", new Guid(jobKey.Name));
+        AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(jobKey.Group));
         using var dr = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         if (await dr.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -107,8 +107,8 @@ public partial class StdAdoDelegate
         using var cmd = PrepareCommand(conn, ReplaceTablePrefix(SqlUpdateJobData));
         AddCommandParameter(cmd, "schedulerName", schedName);
         AddCommandParameter(cmd, "jobDataMap", jobData, DbProvider.Metadata.DbBinaryType);
-        AddCommandParameter(cmd, "jobName", job.Key.Name);
-        AddCommandParameter(cmd, "jobGroup", job.Key.Group);
+        AddCommandParameter(cmd, "jobName", new Guid(job.Key.Name));
+        AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(job.Key.Group));
 
         return await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -122,8 +122,8 @@ public partial class StdAdoDelegate
     {
         using var cmd = PrepareCommand(conn, ReplaceTablePrefix(SqlSelectJobDetail));
         AddCommandParameter(cmd, "schedulerName", schedName);
-        AddCommandParameter(cmd, "jobName", jobKey.Name);
-        AddCommandParameter(cmd, "jobGroup", jobKey.Group);
+        AddCommandParameter(cmd, "jobName", new Guid(jobKey.Name));
+        AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(jobKey.Group));
         using var rs = await cmd.ExecuteReaderAsync(System.Data.CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false);
         IJobDetail? job = null;
 
@@ -132,7 +132,7 @@ public partial class StdAdoDelegate
             // Due to CommandBehavior.SequentialAccess, columns must be read in order.
 
             var jobBuilder = JobBuilder.Create()
-                .WithIdentity(new JobKey(rs.GetString(ColumnJobName)!, rs.GetString(ColumnJobGroup)!))
+                .WithIdentity(new JobKey(rs.GetGuid(ColumnJobName).ToString(), rs.GetInt32(ColumnJobGroup).ToString()))
                 .WithDescription(rs.GetString(ColumnDescription))
                 .OfType(rs.GetString(ColumnJobClass)!)
                 .StoreDurably(GetBooleanFromDbValue(rs[ColumnIsDurable]))
@@ -213,7 +213,7 @@ public partial class StdAdoDelegate
         if (await rs.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
             var jobBuilder = JobBuilder.Create()
-                .WithIdentity(new JobKey(rs.GetString(ColumnJobName)!, rs.GetString(ColumnJobGroup)!))
+                .WithIdentity(new JobKey(rs.GetGuid(ColumnJobName).ToString(), rs.GetInt32(ColumnJobGroup).ToString()))
                 .RequestRecovery(GetBooleanFromDbValue(rs[ColumnRequestsRecovery]))
                 .OfType(rs.GetString(ColumnJobClass)!)
                 .StoreDurably(GetBooleanFromDbValue(rs[ColumnIsDurable]));
@@ -242,8 +242,8 @@ public partial class StdAdoDelegate
     {
         using var cmd = PrepareCommand(conn, ReplaceTablePrefix(SqlSelectJobExecutionCount));
         AddCommandParameter(cmd, "schedulerName", schedName);
-        AddCommandParameter(cmd, "jobName", jobKey.Name);
-        AddCommandParameter(cmd, "jobGroup", jobKey.Group);
+        AddCommandParameter(cmd, "jobName", new Guid(jobKey.Name));
+        AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(jobKey.Group));
 
         return Convert.ToInt32(await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false));
     }
@@ -314,8 +314,8 @@ public partial class StdAdoDelegate
 
         using var cmd = PrepareCommand(conn, ReplaceTablePrefix(SqlInsertJobDetail));
         AddCommandParameter(cmd, "schedulerName", schedName);
-        AddCommandParameter(cmd, "jobName", job.Key.Name);
-        AddCommandParameter(cmd, "jobGroup", job.Key.Group);
+        AddCommandParameter(cmd, "jobName", new Guid(job.Key.Name));
+        AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(job.Key.Group));
         AddCommandParameter(cmd, "jobDescription", job.Description);
         AddCommandParameter(cmd, "jobType", job.JobType.FullName);
         AddCommandParameter(cmd, "jobDurable", GetDbBooleanValue(job.Durable));

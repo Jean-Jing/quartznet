@@ -148,6 +148,7 @@ public partial class StdAdoDelegate : StdAdoConstants, IDriverDelegate, IDbAcces
         AddTriggerPersistenceDelegate(new CronTriggerPersistenceDelegate());
         AddTriggerPersistenceDelegate(new CalendarIntervalTriggerPersistenceDelegate());
         AddTriggerPersistenceDelegate(new DailyTimeIntervalTriggerPersistenceDelegate());
+        AddTriggerPersistenceDelegate(new CustomCalendarTriggerPersistenceDelegate());
     }
 
     protected virtual bool CanUseProperties => useProperties;
@@ -385,13 +386,13 @@ public partial class StdAdoDelegate : StdAdoConstants, IDriverDelegate, IDbAcces
 
         using var cmd = PrepareCommand(conn, sql);
         AddCommandParameter(cmd, "schedulerName", schedName);
-        AddCommandParameter(cmd, "jobGroup", parameter);
+        AddCommandParameter(cmd, "jobGroup", Convert.ToInt32(parameter));
 
         using var rs = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         var list = new HashSet<JobKey>();
         while (await rs.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
-            list.Add(new JobKey(rs.GetString(0), rs.GetString(1)));
+            list.Add(new JobKey(rs.GetGuid(0).ToString(), rs.GetString(1)));
         }
         return list;
     }

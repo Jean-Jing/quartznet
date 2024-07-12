@@ -92,4 +92,22 @@ public static class TriggerExtensions
         triggerBuilder.WithSchedule(schedule);
         return triggerBuilder;
     }
+
+    public static ITriggerConfigurator WithCustomCalendarSchedule(
+        this ITriggerConfigurator triggerBuilder,
+        CustomCalendarScheduleBuilder schedule)
+    {
+        triggerBuilder.WithSchedule(schedule);
+        return triggerBuilder;
+    }
+
+    public static ITriggerConfigurator WithCustomCalendarSchedule(
+        this ITriggerConfigurator triggerBuilder,
+        Action<CustomCalendarScheduleBuilder>? action = null)
+    {
+        CustomCalendarScheduleBuilder builder = CustomCalendarScheduleBuilder.Create();
+        action?.Invoke(builder);
+        triggerBuilder.WithSchedule(builder);
+        return triggerBuilder;
+    }
 }
