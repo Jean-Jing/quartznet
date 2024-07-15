@@ -26,8 +26,9 @@ public class JobDataMapStorageTest : IntegrationTest
         IScheduler scheduler = await CreateScheduler("testBasicStorageFunctions");
         await scheduler.Clear();
 
+        var jobKey = Guid.NewGuid().ToString();
         IJobDetail jobDetail = JobBuilder.Create<NoOpJob>()
-            .WithIdentity("test")
+            .WithIdentity(jobKey, "111111")
             .UsingJobData("jfoo", "bar")
             .Build();
 
@@ -39,7 +40,7 @@ public class JobDataMapStorageTest : IntegrationTest
 
         await scheduler.ScheduleJob(jobDetail, trigger);
 
-        IJobDetail storedJobDetail = await scheduler.GetJobDetail(new JobKey("test"));
+        IJobDetail storedJobDetail = await scheduler.GetJobDetail(new JobKey(jobKey, "111111"));
         JobDataMap storedJobMap = storedJobDetail.JobDataMap;
         Assert.That(storedJobMap.Dirty, Is.False);
 

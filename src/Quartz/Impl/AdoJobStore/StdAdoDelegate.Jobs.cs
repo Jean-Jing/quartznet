@@ -181,7 +181,7 @@ public partial class StdAdoDelegate
         List<string> list = new List<string>();
         while (await rs.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
-            list.Add(rs.GetString(0));
+            list.Add(rs.GetInt32(0).ToString());
         }
 
         return list;

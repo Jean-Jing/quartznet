@@ -90,7 +90,7 @@ public sealed class CustomCalendarTriggerPersistenceDelegate : SimplePropertiesT
 
         if (!string.IsNullOrEmpty(props.String2))
         {
-            sb.ByMonthDay(Convert.ToInt32(props.String2));
+            sb.ByMonthDay(props.String2);
         }
 
         if (!string.IsNullOrEmpty(props.String3))

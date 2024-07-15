@@ -67,8 +67,8 @@ public sealed class CustomCalendarTriggerImpl : AbstractTrigger, ICustomCalendar
 
     private int repeatCount = RepeatIndefinitely;
     private int byMonth = 0; // 1 ~ 12
-    private string? byMonthDay = "0"; // 1 ~ 31
-    private string? byDay = string.Empty; // 1MO, 2WE (Monthly / Yearly) / MO (Weekly)
+    private string? byMonthDay = ""; // 1,2,3,...,30,31
+    private string? byDay = string.Empty; // 1MO, -1TU(Last), 2WE (Monthly / Yearly) / MO (Weekly)
 
     internal TimeZoneInfo? timeZone;
 
@@ -610,21 +610,18 @@ public sealed class CustomCalendarTriggerImpl : AbstractTrigger, ICustomCalendar
     public override DateTimeOffset? GetFireTimeAfter(DateTimeOffset? afterTimeUtc)
     {
         // Check repeatCount limit
-        if (repeatCount != RepeatIndefinitely && TimesTriggered > repeatCount)
+        if (repeatCount != RepeatIndefinitely && (TimesTriggered > repeatCount || repeatCount == 0))
         {
             return null;
         }
 
+        // set afterTimeUtc to now if null
         if (!afterTimeUtc.HasValue)
         {
             afterTimeUtc = TimeProvider.GetUtcNow();
         }
 
-        if (StartTimeUtc > afterTimeUtc.Value)
-        {
-            afterTimeUtc = StartTimeUtc.AddSeconds(-1);
-        }
-
+        // return null if afterTimeUtc is greater than endTimeUtc
         if (EndTimeUtc.HasValue && afterTimeUtc.Value.CompareTo(EndTimeUtc.Value) >= 0)
         {
             return null;
@@ -647,12 +644,12 @@ public sealed class CustomCalendarTriggerImpl : AbstractTrigger, ICustomCalendar
     // FREQ=WEEKLY;BYDAY=SU,WE,TH,SA;INTERVAL=3;COUNT=6
 
     // 3. Monthly
-    // FREQ=MONTHLY;BYMONTHDAY=5;INTERVAL=6;UNTIL=20240509T160000Z
-    // FREQ=MONTHLY;BYDAY=WE;INTERVAL=6;UNTIL=20240509T160000Z
+    // FREQ=MONTHLY;BYMONTHDAY=5,9,31;INTERVAL=6;UNTIL=20240509T160000Z
+    // FREQ=MONTHLY;BYDAY=WE,SU,SA;INTERVAL=6;UNTIL=20240509T160000Z
 
     // 4. Yearly
-    // FREQ=YEARLY;INTERVAL=3;BYMONTH=3;BYDAY=1MO
-    // FREQ=YEARLY;INTERVAL=3;BYMONTH=4;BYMONTHDAY=3
+    // FREQ=YEARLY;INTERVAL=3;BYMONTH=3;BYDAY=1MO,5FR,-1WE
+    // FREQ=YEARLY;INTERVAL=3;BYMONTH=4;BYMONTHDAY=1,3,30,31
     private string? ConstructRecurrencePatternStrings()
     {
         string? recurrencePatterns;
@@ -668,11 +665,11 @@ public sealed class CustomCalendarTriggerImpl : AbstractTrigger, ICustomCalendar
             case IntervalUnit.Month:
                 {
                     recurrencePatterns = $"FREQ=MONTHLY;INTERVAL={RepeatInterval}";
-                    if (byMonthDay != null)
+                    if (!string.IsNullOrEmpty(ByMonthDay))
                     {
                         recurrencePatterns += $";BYMONTHDAY={ByMonthDay}";
                     }
-                    else if (byDay != null)
+                    else if (!string.IsNullOrEmpty(byDay))
                     {
                         recurrencePatterns += $";BYDAY={ByDay}";
                     }
@@ -681,11 +678,11 @@ public sealed class CustomCalendarTriggerImpl : AbstractTrigger, ICustomCalendar
             case IntervalUnit.Year:
                 {
                     recurrencePatterns = $"FREQ=YEARLY;INTERVAL={RepeatInterval};BYMONTH={ByMonth}";
-                    if (byMonthDay != null)
+                    if (!string.IsNullOrEmpty(ByMonthDay))
                     {
                         recurrencePatterns += $";BYMONTHDAY={ByMonthDay}";
                     }
-                    else if (byDay != null)
+                    else if (!string.IsNullOrEmpty(byDay))
                     {
                         recurrencePatterns += $";BYDAY={ByDay}";
                     }
@@ -695,13 +692,42 @@ public sealed class CustomCalendarTriggerImpl : AbstractTrigger, ICustomCalendar
                 throw new NotSupportedException($"{RepeatIntervalUnit} is not supported.");
         }
 
-        //if (RepeatCount > 1)
-        {
-            recurrencePatterns += $";COUNT=3";
-        }
+        recurrencePatterns += $";COUNT=500";
 
         return recurrencePatterns;
     }
+
+    /// <summary>
+    /// Recalculate start time to minimize the evaluator loop
+    /// </summary>
+    /// <param name="afterTimeUtc"></param>
+    /// <returns></returns>
+    private DateTimeOffset ReCalculateStartTimeUtc(DateTimeOffset afterTimeUtc)
+    {
+        var newStartTimeUtc = startTimeUtc;
+
+        // Dictionary to map IntervalUnit to corresponding add function
+        var intervalActions = new Dictionary<IntervalUnit, Func<DateTimeOffset, DateTimeOffset>>()
+        {
+            { IntervalUnit.Year, dt => dt.AddYears(1 * RepeatInterval) },
+            { IntervalUnit.Month, dt => dt.AddMonths(1 * RepeatInterval) },
+            { IntervalUnit.Week, dt => dt.AddDays(7 * RepeatInterval) },
+            { IntervalUnit.Day, dt => dt.AddDays(1 * RepeatInterval) } // Assuming default case is adding days
+        };
+
+        // Get the appropriate add function based on the RepeatIntervalUnit
+        var addInterval = intervalActions.ContainsKey(RepeatIntervalUnit) ? intervalActions[RepeatIntervalUnit] : intervalActions[IntervalUnit.Day];
+
+        while (newStartTimeUtc < afterTimeUtc)
+        {
+            var tempDateTimeUtc = addInterval(newStartTimeUtc);
+            if (tempDateTimeUtc >= afterTimeUtc) break;
+            newStartTimeUtc = tempDateTimeUtc;
+        }
+
+        return newStartTimeUtc;
+    }
+
 
     /// <summary>
     /// Gets the next time to fire after the given time.
@@ -710,38 +736,45 @@ public sealed class CustomCalendarTriggerImpl : AbstractTrigger, ICustomCalendar
     /// <returns></returns>
     private DateTimeOffset? GetTimeAfter(DateTimeOffset afterTimeUtc)
     {
-        //afterTimeUtc = afterTimeUtc.AddSeconds(1);
+        try
+        {
+            string? patterns = ConstructRecurrencePatternStrings();
+            RecurrencePatternEvaluator evaluator = new(new RecurrencePattern(patterns));
+
+            DateTimeOffset sTime = ReCalculateStartTimeUtc(afterTimeUtc);
+            DateTimeOffset eTime = EndTimeUtc != null ? EndTimeUtc.Value : DateTimeOffset.MaxValue.UtcDateTime;
+            if (timeZone != null)
+            {
+                sTime = TimeZoneInfo.ConvertTimeFromUtc(sTime.UtcDateTime, timeZone);
+                eTime = TimeZoneInfo.ConvertTimeFromUtc(eTime.UtcDateTime, timeZone);
+            }
+            else
+            {
+                timeZone = TimeZoneInfo.Utc;
+            }
+
+            DateTime start = sTime.DateTime;
+            DateTime end = eTime.DateTime;
+
+            HashSet<Period> occurrences = evaluator.Evaluate(new CalDateTime(start, timeZone.Id), start, end, includeReferenceDateInResults: false);
+            if (occurrences == null || occurrences.Count <= 0)
+            {
+                return null;
+            }
         
-        var newStartTimeUtc = new DateTimeOffset(afterTimeUtc.Year, afterTimeUtc.Month, afterTimeUtc.Day, StartTimeUtc.Hour, StartTimeUtc.Minute, StartTimeUtc.Second, afterTimeUtc.Offset);
-        newStartTimeUtc = newStartTimeUtc.AddDays(-1);
+            Period? occurrence = occurrences.FirstOrDefault(o => o.StartTime.AsUtc > afterTimeUtc);
+            if (occurrence == null)
+            {
+                return null;
+            }
 
-        string? patterns = ConstructRecurrencePatternStrings();
-        RecurrencePatternEvaluator evaluator = new(new RecurrencePattern(patterns));
-
-        DateTimeOffset sTime = newStartTimeUtc;
-        DateTimeOffset eTime = EndTimeUtc != null ? EndTimeUtc.Value : DateTimeOffset.MaxValue.UtcDateTime;
-        if (timeZone != null)
-        {
-            sTime = TimeZoneInfo.ConvertTimeFromUtc(sTime.UtcDateTime, timeZone);
-            eTime = TimeZoneInfo.ConvertTimeFromUtc(eTime.UtcDateTime, timeZone);
+            return occurrence.StartTime.AsDateTimeOffset;
         }
-
-        DateTime start = sTime.DateTime;
-        DateTime end = eTime.DateTime;
-
-        HashSet<Period> occurrences = evaluator.Evaluate(new CalDateTime(start, timeZone!.Id), start, end, includeReferenceDateInResults: false);
-        if (occurrences == null || occurrences.Count <= 0)
+        catch (Exception ex)
         {
+            ThrowHelper.ThrowSchedulerException(ex.Message);
             return null;
         }
-        
-        Period? occurrence = occurrences.FirstOrDefault(o => o.StartTime.AsUtc > afterTimeUtc);
-        if (occurrence == null)
-        {
-            return null;
-        }
-
-        return occurrence.StartTime.AsDateTimeOffset;
     }
 
     /// <summary>
@@ -825,7 +858,7 @@ public sealed class CustomCalendarTriggerImpl : AbstractTrigger, ICustomCalendar
         }
 
         // FREQ=YEARLY;INTERVAL=2;BYMONTH=1;BYDAY=1MO,1WE
-        // FREQ=YEARLY;INTERVAL=3;BYMONTH=3;BYMONTHDAY=06
+        // FREQ=YEARLY;INTERVAL=3;BYMONTH=3;BYMONTHDAY=1,5,9,30,31
         if (RepeatIntervalUnit == IntervalUnit.Year)
         {
             if (ByMonth < 1 || ByMonth > 12)
@@ -834,15 +867,15 @@ public sealed class CustomCalendarTriggerImpl : AbstractTrigger, ICustomCalendar
             }
 
             var validByDay = !string.IsNullOrEmpty(ByDay);
-            var validByMonthDay = !string.IsNullOrEmpty(ByDay) && Convert.ToInt32(ByMonthDay) >= 1 &&  Convert.ToInt32(ByMonthDay) <= 31;
+            var validByMonthDay = !string.IsNullOrEmpty(ByMonthDay);
             if (!validByDay && !validByMonthDay)
             {
                 ThrowHelper.ThrowSchedulerException("By day / By month day must be set correctly, but was {ByDay} / {ByMonthDay}");
             }
         }
 
-        // FREQ=MONTHLY;INTERVAL=2;BYMONTHDAY=1,3
-        // FREQ=MONTHLY;INTERVAL=2;BYDAY=1MO,1FR
+        // FREQ=MONTHLY;INTERVAL=2;BYMONTHDAY=1,3,30,31
+        // FREQ=MONTHLY;INTERVAL=2;BYDAY=1MO,1FR,-1SU
         if (RepeatIntervalUnit == IntervalUnit.Month)
         {
             var validByDay = !string.IsNullOrEmpty(ByDay);

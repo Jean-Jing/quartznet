@@ -49,7 +49,7 @@ public class RecoverJobsTest
 
         await scheduler.ScheduleJob(
             JobBuilder.Create<RecoverJobsTestJob>()
-                .WithIdentity("test")
+                .WithIdentity("04408b2c-bc52-4dca-939b-431adaa92e21", "111111")
                 .Build(),
             TriggerBuilder.Create()
                 .WithIdentity("test")

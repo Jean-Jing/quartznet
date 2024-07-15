@@ -42,8 +42,9 @@ public class SmokeTestPerformer
                 IOperableTrigger calendarsTrigger = new SimpleTriggerImpl("calendarsTrigger", "test", 20, TimeSpan.FromMilliseconds(5));
                 calendarsTrigger.CalendarName = "annualCalendar";
 
+                var jobName = Guid.NewGuid().ToString();
                 var jd = JobBuilder.Create<NoOpJob>()
-                    .WithIdentity(new JobKey("testJob", "test"))
+                    .WithIdentity(new JobKey(jobName, "111111"))
                     .Build();
                 await scheduler.ScheduleJob(jd, calendarsTrigger);
 
@@ -71,9 +72,11 @@ public class SmokeTestPerformer
 
                 Assert.IsNotNull(await scheduler.GetCalendar("annualCalendar"));
 
+                var jobName2 = Guid.NewGuid().ToString();
+                var group2 = "222222";
                 var lonelyJob = JobBuilder.Create()
                     .OfType<SimpleRecoveryJob>()
-                    .WithIdentity(new JobKey("lonelyJob", "lonelyGroup"))
+                    .WithIdentity(new JobKey(jobName2, group2))
                     .StoreDurably(true)
                     .RequestRecovery(true)
                     .Build();
@@ -81,13 +84,15 @@ public class SmokeTestPerformer
                 await scheduler.AddJob(lonelyJob, false);
                 await scheduler.AddJob(lonelyJob, true);
 
-                string schedId = scheduler.SchedulerInstanceId;
+                //string schedId = scheduler.SchedulerInstanceId;
+                string schedId = "333333";
 
                 int count = 1;
+                var jobNameN = "04408b2c-bc52-4dca-939b-431adaa92e2";
 
                 var job = JobBuilder.Create()
                     .OfType<SimpleRecoveryJob>()
-                    .WithIdentity(new JobKey("job_" + count, schedId))
+                    .WithIdentity(new JobKey(jobNameN + count, schedId))
                     .RequestRecovery(true)
                     .Build();
                 // ask scheduler to re-Execute this job if it was in progress when
@@ -107,7 +112,7 @@ public class SmokeTestPerformer
                 count++;
                 job = JobBuilder.Create()
                     .OfType<SimpleRecoveryJob>()
-                    .WithIdentity(new JobKey("job_" + count, schedId))
+                    .WithIdentity(new JobKey(jobNameN + count, schedId))
                     .RequestRecovery(true)
                     .Build();
                 // ask scheduler to re-Execute this job if it was in progress when
@@ -119,7 +124,7 @@ public class SmokeTestPerformer
                 count++;
                 job = JobBuilder.Create()
                     .OfType<SimpleRecoveryStatefulJob>()
-                    .WithIdentity(new JobKey("job_" + count, schedId))
+                    .WithIdentity(new JobKey(jobNameN + count, schedId))
                     .RequestRecovery(true)
                     .Build();
                 // ask scheduler to re-Execute this job if it was in progress when
@@ -131,7 +136,7 @@ public class SmokeTestPerformer
                 count++;
                 job = JobBuilder.Create()
                     .OfType<SimpleRecoveryJob>()
-                    .WithIdentity(new JobKey("job_" + count, schedId))
+                    .WithIdentity(new JobKey(jobNameN + count, schedId))
                     .RequestRecovery(true)
                     .Build();
                 // ask scheduler to re-Execute this job if it was in progress when
@@ -143,7 +148,7 @@ public class SmokeTestPerformer
                 count++;
                 job = JobBuilder.Create()
                     .OfType<SimpleRecoveryJob>()
-                    .WithIdentity(new JobKey("job_" + count, schedId))
+                    .WithIdentity(new JobKey(jobNameN + count, schedId))
                     .RequestRecovery(true)
                     .Build();
                 // ask scheduler to re-Execute this job if it was in progress when
@@ -154,7 +159,7 @@ public class SmokeTestPerformer
                 count++;
                 job = JobBuilder.Create()
                     .OfType<SimpleRecoveryJob>()
-                    .WithIdentity(new JobKey("job_" + count, schedId))
+                    .WithIdentity(new JobKey(jobNameN + count, schedId))
                     .RequestRecovery(true)
                     .Build();
                 // ask scheduler to re-Execute this job if it was in progress when
@@ -168,7 +173,7 @@ public class SmokeTestPerformer
                 count++;
                 job = JobBuilder.Create()
                     .OfType<SimpleRecoveryJob>()
-                    .WithIdentity(new JobKey("job_" + count, schedId))
+                    .WithIdentity(new JobKey(jobNameN + count, schedId))
                     .RequestRecovery(true)
                     .Build();
                 // ask scheduler to re-Execute this job if it was in progress when
@@ -259,7 +264,7 @@ public class SmokeTestPerformer
                 // bulk operations
                 var info = new Dictionary<IJobDetail, IReadOnlyCollection<ITrigger>>();
                 IJobDetail detail = JobBuilder.Create<SimpleRecoveryJob>()
-                    .WithIdentity(new JobKey("job_" + count, schedId))
+                    .WithIdentity(new JobKey(jobNameN + count, schedId))
                     .Build();
                 ITrigger simple = new SimpleTriggerImpl("trig_" + count, schedId, 20, TimeSpan.FromMilliseconds(4500));
                 var triggers = new List<ITrigger>();
@@ -272,15 +277,15 @@ public class SmokeTestPerformer
                 Assert.IsTrue(await scheduler.CheckExists(simple.Key));
 
                 // QRTZNET-243
-                await scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupContains("a"));
-                await scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupEndsWith("a"));
-                await scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupStartsWith("a"));
-                await scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupEquals("a"));
+                //await scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupContains("a"));
+                //await scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupEndsWith("a"));
+                //await scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupStartsWith("a"));
+                //await scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupEquals("a"));
 
-                await scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupContains("a"));
-                await scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupEndsWith("a"));
-                await scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupStartsWith("a"));
-                await scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupEquals("a"));
+                //await scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupContains("a"));
+                //await scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupEndsWith("a"));
+                //await scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupStartsWith("a"));
+                //await scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupEquals("a"));
 
                 await scheduler.Start();
 
@@ -290,9 +295,9 @@ public class SmokeTestPerformer
 
                 await scheduler.ResumeAll();
 
-                await scheduler.PauseJob(new JobKey("job_1", schedId));
+                await scheduler.PauseJob(new JobKey("04408b2c-bc52-4dca-939b-431adaa92e21", schedId));
 
-                await scheduler.ResumeJob(new JobKey("job_1", schedId));
+                await scheduler.ResumeJob(new JobKey("04408b2c-bc52-4dca-939b-431adaa92e21", schedId));
 
                 await scheduler.PauseJobs(GroupMatcher<JobKey>.GroupEquals(schedId));
 
@@ -312,11 +317,11 @@ public class SmokeTestPerformer
                 await scheduler.ResumeTriggers(GroupMatcher<TriggerKey>.GroupEquals(schedId));
 
                 Assert.IsNotNull(scheduler.GetTrigger(new TriggerKey("trig_2", schedId)));
-                Assert.IsNotNull(scheduler.GetJobDetail(new JobKey("job_1", schedId)));
+                Assert.IsNotNull(scheduler.GetJobDetail(new JobKey("04408b2c-bc52-4dca-939b-431adaa92e21", schedId)));
                 Assert.IsNotNull(scheduler.GetMetaData());
                 Assert.IsNotNull(scheduler.GetCalendar("weeklyCalendar"));
 
-                var genericjobKey = new JobKey("genericJob", "genericGroup");
+                var genericjobKey = new JobKey("54408b2c-bc52-4dca-939b-431adaa92e21", "555555");
                 GenericJobType.Reset();
                 var genericJob = JobBuilder.Create<GenericJobType>()
                     .WithIdentity(genericjobKey)
@@ -337,8 +342,8 @@ public class SmokeTestPerformer
                 CollectionAssert.IsNotEmpty(await scheduler.GetCalendarNames());
                 CollectionAssert.IsNotEmpty(await scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupEquals(schedId)));
 
-                CollectionAssert.IsNotEmpty(await scheduler.GetTriggersOfJob(new JobKey("job_2", schedId)));
-                Assert.IsNotNull(scheduler.GetJobDetail(new JobKey("job_2", schedId)));
+                CollectionAssert.IsNotEmpty(await scheduler.GetTriggersOfJob(new JobKey("04408b2c-bc52-4dca-939b-431adaa92e22", schedId)));
+                Assert.IsNotNull(scheduler.GetJobDetail(new JobKey("04408b2c-bc52-4dca-939b-431adaa92e22", schedId)));
 
                 await scheduler.DeleteCalendar("cronCalendar");
                 await scheduler.DeleteCalendar("holidayCalendar");

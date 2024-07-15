@@ -233,10 +233,12 @@ public class StdAdoDelegateTest
             .Returns(true)
             .Once();
 
-        var jobName = $"TestJobName-{Guid.NewGuid()}";
+        var jobName = $"{Guid.NewGuid()}";
         A.CallTo(() => dataReader[AdoConstants.ColumnJobName])
-            .Returns(jobName);
-        var jobGroup = $"TestGroup-{Guid.NewGuid()}";
+            .Returns(new Guid(jobName));
+
+        Random random = new Random();
+        int jobGroup = random.Next(0, 10000);
         A.CallTo(() => dataReader[AdoConstants.ColumnJobGroup])
             .Returns(jobGroup);
         var jobDescription = $"TestDescription-{Guid.NewGuid()}";
@@ -287,7 +289,7 @@ public class StdAdoDelegateTest
         var adoDelegate = new StdAdoDelegate();
         adoDelegate.Initialize(delegateInitializationArgs);
 
-        var jobKey = new JobKey(jobName, jobGroup);
+        var jobKey = new JobKey(jobName, jobGroup.ToString());
 
         var jobDetail = await adoDelegate.SelectJobDetail(
             conn,
@@ -297,7 +299,7 @@ public class StdAdoDelegateTest
 
         Assert.IsNotNull(jobDetail);
         Assert.AreEqual(jobName, jobDetail.Key.Name);
-        Assert.AreEqual(jobGroup, jobDetail.Key.Group);
+        Assert.AreEqual(jobGroup, Convert.ToInt32(jobDetail.Key.Group));
         Assert.AreEqual(jobDescription, jobDetail.Description);
         Assert.AreEqual(typeof(TestJob), jobDetail.JobType.Type);
         Assert.IsTrue(jobDetail.RequestsRecovery);

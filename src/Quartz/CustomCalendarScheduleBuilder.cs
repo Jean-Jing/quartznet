@@ -47,8 +47,8 @@ public sealed class CustomCalendarScheduleBuilder : ScheduleBuilder<ICustomCalen
     private TimeZoneInfo? timeZone;
 
     private int byMonth;
-    private string? byMonthDay;
-    private string? byDay;
+    private string? byMonthDay; // 1,2,3,...,30,31
+    private string? byDay; // MO, 1MO, 2SU, 5FR, -1SA
 
     /// <summary>
     /// Set the interval at which the <see cref="ICustomCalendarTrigger" /> will repeat.
@@ -317,21 +317,17 @@ public sealed class CustomCalendarScheduleBuilder : ScheduleBuilder<ICustomCalen
         {
             ThrowHelper.ThrowArgumentException("ByMonth must be used with Year/Month Interval Unit.");
         }
-        if (month <= 0 || month > 12)
+        if (month < 1 || month > 12)
         {
             ThrowHelper.ThrowArgumentException("Month must be a valid value.");
         }
     }
 
-    private static void ValidateMonthDay(int monthDay, IntervalUnit intervalUnit)
+    private static void ValidateMonthDay(string monthDay, IntervalUnit intervalUnit)
     {
         if (intervalUnit != IntervalUnit.Year && intervalUnit != IntervalUnit.Month)
         {
             ThrowHelper.ThrowArgumentException("ByMonthDay must be used with Year/Month Interval Unit.");
-        }
-        if (monthDay <= 0 || monthDay > 31)
-        {
-            ThrowHelper.ThrowArgumentException("Month Day must be a valid value.");
         }
     }
 
@@ -349,10 +345,10 @@ public sealed class CustomCalendarScheduleBuilder : ScheduleBuilder<ICustomCalen
         return this;
     }
 
-    public CustomCalendarScheduleBuilder ByMonthDay(int monthDay)
+    public CustomCalendarScheduleBuilder ByMonthDay(string monthDay)
     {
         ValidateMonthDay(monthDay, intervalUnit);
-        byMonthDay = monthDay.ToString();
+        byMonthDay = monthDay;
         return this;
     }
 

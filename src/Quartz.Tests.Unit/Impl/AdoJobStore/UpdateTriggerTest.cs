@@ -63,13 +63,13 @@ public class UpdateTriggerTest
     public async Task CronTrigger_AfterTriggerUpdate_Retains_Cron_Type()
     {
         //Arrange
-        var cronTriggerImpl = new CronTriggerImpl("Trigger", "Trigger.Group", "JobName", "JobGroup", "0 15 23 * * ?");
+        var cronTriggerImpl = new CronTriggerImpl("Trigger", "Trigger.Group", "04408b2c-bc52-4dca-939b-431adaa92e21", "111111", "0 15 23 * * ?");
         cronTriggerImpl.CalendarName = "calName";
         cronTriggerImpl.MisfireInstruction = 1;
         cronTriggerImpl.Description = "Description";
         cronTriggerImpl.SetPreviousFireTimeUtc(new DateTimeOffset(new DateTime(2010, 1, 1)));
         cronTriggerImpl.SetNextFireTimeUtc(new DateTimeOffset(new DateTime(2010, 2, 1)));
-        cronTriggerImpl.JobKey = new JobKey("JobKey", "JobKeyGroup");
+        cronTriggerImpl.JobKey = new JobKey("04408b2c-bc52-4dca-939b-431adaa92e21", "111111");
         cronTriggerImpl.Priority = 1;
 
         // Support getting the existing trigger type.

@@ -24,7 +24,7 @@ internal sealed class CustomCalendarTriggerSerializer : TriggerSerializer<ICusto
         var timeZone = jsonElement.GetProperty("TimeZone").GetTimeZone();
 
         var byMonth = jsonElement.GetProperty("ByMonth").GetInt32();
-        var byMonthDay = jsonElement.GetProperty("ByMonthDay").GetInt32();
+        var byMonthDay = jsonElement.GetProperty("ByMonthDay").GetString();
         var byDay = jsonElement.GetProperty("ByDay").GetString();
 
         var sb = CustomCalendarScheduleBuilder.Create()
@@ -36,7 +36,7 @@ internal sealed class CustomCalendarTriggerSerializer : TriggerSerializer<ICusto
             sb = sb.ByMonth(byMonth);
         }
 
-        if (byMonthDay > 0 && byMonthDay <= 31)
+        if (!string.IsNullOrEmpty(byMonthDay))
         {
             sb = sb.ByMonthDay(byMonthDay);
         }

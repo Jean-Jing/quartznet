@@ -76,7 +76,7 @@ public class DeleteNonExistsJobTest
     [Test]
     public async Task DeleteJobDetailOnly()
     {
-        IJobDetail jobDetail = JobBuilder.Create<TestJob>().WithIdentity("testjob").StoreDurably().Build();
+        IJobDetail jobDetail = JobBuilder.Create<TestJob>().WithIdentity("04408b2c-bc52-4dca-939b-431adaa92e21", "111111").StoreDurably().Build();
         await scheduler.AddJob(jobDetail, true);
         await ModifyStoredJobClassName();
 
@@ -86,9 +86,9 @@ public class DeleteNonExistsJobTest
     [Test]
     public async Task DeleteJobDetailWithTrigger()
     {
-        IJobDetail jobDetail = JobBuilder.Create<TestJob>().WithIdentity("testjob2").StoreDurably().Build();
+        IJobDetail jobDetail = JobBuilder.Create<TestJob>().WithIdentity("04408b2c-bc52-4dca-939b-431adaa92e21", "111111").StoreDurably().Build();
         ITrigger trigger = TriggerBuilder.Create()
-            .WithIdentity("testjob2")
+            .WithIdentity("04408b2c-bc52-4dca-939b-431adaa92e21", "111111")
             .WithSchedule(CronScheduleBuilder.CronSchedule("* * * * * ?"))
             .Build();
 
@@ -101,9 +101,9 @@ public class DeleteNonExistsJobTest
     [Test]
     public async Task DeleteTrigger()
     {
-        IJobDetail jobDetail = JobBuilder.Create<TestJob>().WithIdentity("testjob3").StoreDurably().Build();
+        IJobDetail jobDetail = JobBuilder.Create<TestJob>().WithIdentity("04408b2c-bc52-4dca-939b-431adaa92e21", "111111").StoreDurably().Build();
         ITrigger trigger = TriggerBuilder.Create()
-            .WithIdentity("testjob3")
+            .WithIdentity("04408b2c-bc52-4dca-939b-431adaa92e21", "111111")
             .WithSchedule(CronScheduleBuilder.CronSchedule("* * * * * ?"))
             .Build();
         await scheduler.ScheduleJob(jobDetail, trigger);
@@ -115,15 +115,15 @@ public class DeleteNonExistsJobTest
     [Test]
     public async Task ReplaceJobDetail()
     {
-        IJobDetail jobDetail = JobBuilder.Create<TestJob>().WithIdentity("testjob3").StoreDurably().Build();
+        IJobDetail jobDetail = JobBuilder.Create<TestJob>().WithIdentity("04408b2c-bc52-4dca-939b-431adaa92e21", "111111").StoreDurably().Build();
         ITrigger trigger = TriggerBuilder.Create()
-            .WithIdentity("testjob3")
+            .WithIdentity("04408b2c-bc52-4dca-939b-431adaa92e21", "111111")
             .WithSchedule(CronScheduleBuilder.CronSchedule("* * * * * ?"))
             .Build();
         await scheduler.ScheduleJob(jobDetail, trigger);
         await ModifyStoredJobClassName();
 
-        jobDetail = JobBuilder.Create<TestJob>().WithIdentity("testjob3").StoreDurably().Build();
+        jobDetail = JobBuilder.Create<TestJob>().WithIdentity("04408b2c-bc52-4dca-939b-431adaa92e21", "111111").StoreDurably().Build();
         await scheduler.AddJob(jobDetail, true);
     }
 

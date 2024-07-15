@@ -28,10 +28,10 @@ public class JobMaintenanceTests : IntegrationTest
     {
         var scheduler = await GetCleanScheduler();
 
-        const string jobKey = "CanDeleteUnknownTypeJobs";
+        string jobKey = Guid.NewGuid().ToString();
         const string triggerKey = "CanDeleteUnknownTypeJobsTrigger";
         var jobDetail = JobBuilder.Create<KnownJobType>()
-            .WithIdentity(jobKey)
+            .WithIdentity(jobKey, "111111")
             .UsingJobData("jfoo", "bar")
             .Build();
 
@@ -46,7 +46,7 @@ public class JobMaintenanceTests : IntegrationTest
         await RenameJobType("Quartz.Tests.Integration.JobMaintenanceTests+UnKnownJobType");
 
         // assert job is stored
-        var storedJobDetail = await scheduler.GetJobDetail(new JobKey(jobKey));
+        var storedJobDetail = await scheduler.GetJobDetail(new JobKey(jobKey, "111111"));
         var storedJobMap = storedJobDetail.JobDataMap;
         Assert.That(storedJobMap.Dirty, Is.False);
 

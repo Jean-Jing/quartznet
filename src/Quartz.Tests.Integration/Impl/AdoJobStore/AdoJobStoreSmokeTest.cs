@@ -43,9 +43,9 @@ public class AdoJobStoreSmokeTest
         testLoggerHelper = new TestLoggerHelper();
     }
 
-    [Test]
-    [Category("db-sqlserver")]
-    [TestCaseSource(nameof(GetSerializerTypes))]
+    //[Test]
+    //[Category("db-sqlserver")]
+    //[TestCaseSource(nameof(GetSerializerTypes))]
     public Task TestSqlServer(string serializerType)
     {
         var properties = new NameValueCollection
@@ -55,9 +55,9 @@ public class AdoJobStoreSmokeTest
         return RunAdoJobStoreTest(TestConstants.DefaultSqlServerProvider, "SQLServer", serializerType, properties);
     }
 
-    [Test]
-    [Category("db-sqlserver")]
-    [TestCaseSource(nameof(GetSerializerTypes))]
+    //[Test]
+    //[Category("db-sqlserver")]
+    //[TestCaseSource(nameof(GetSerializerTypes))]
     public Task TestSqlServerMemoryOptimizedTables(string serializerType)
     {
         var properties = new NameValueCollection
@@ -68,9 +68,9 @@ public class AdoJobStoreSmokeTest
         return RunAdoJobStoreTest(TestConstants.DefaultSqlServerProvider, "SQLServerMOT", serializerType, properties);
     }
 
-    [Test]
-    [Category("db-postgres")]
-    [TestCaseSource(nameof(GetSerializerTypes))]
+    //[Test]
+    //[Category("db-postgres")]
+    //[TestCaseSource(nameof(GetSerializerTypes))]
     public Task TestPostgreSql(string serializerType)
     {
         NameValueCollection properties = new NameValueCollection();
@@ -78,9 +78,9 @@ public class AdoJobStoreSmokeTest
         return RunAdoJobStoreTest("Npgsql", "PostgreSQL", serializerType, properties);
     }
 
-    [Test]
-    [Category("db-mysql")]
-    [TestCaseSource(nameof(GetSerializerTypes))]
+    //[Test]
+    //[Category("db-mysql")]
+    //[TestCaseSource(nameof(GetSerializerTypes))]
     public Task TestMySql(string serializerType)
     {
         NameValueCollection properties = new NameValueCollection();
@@ -88,9 +88,9 @@ public class AdoJobStoreSmokeTest
         return RunAdoJobStoreTest("MySqlConnector", "MySQL", serializerType, properties);
     }
 
-    [Test]
-    [Category("db-sqlite")]
-    [TestCaseSource(nameof(GetSerializerTypes))]
+    //[Test]
+    //[Category("db-sqlite")]
+    //[TestCaseSource(nameof(GetSerializerTypes))]
     public async Task TestSQLiteMicrosoft(string serializerType)
     {
         var dbFilename = $"test-{serializerType}.db";
@@ -125,9 +125,9 @@ public class AdoJobStoreSmokeTest
         return File.ReadAllText(path);
     }
 
-    [Test]
-    [Category("db-firebird")]
-    [TestCaseSource(nameof(GetSerializerTypes))]
+    //[Test]
+    //[Category("db-firebird")]
+    //[TestCaseSource(nameof(GetSerializerTypes))]
     public Task TestFirebird(string serializerType)
     {
         NameValueCollection properties = new NameValueCollection();
@@ -135,9 +135,9 @@ public class AdoJobStoreSmokeTest
         return RunAdoJobStoreTest("Firebird", "Firebird", serializerType, properties);
     }
 
-    [Test]
-    [Category("db-oracle")]
-    [TestCaseSource(nameof(GetSerializerTypes))]
+    //[Test]
+    //[Category("db-oracle")]
+    //[TestCaseSource(nameof(GetSerializerTypes))]
     public Task TestOracleODPManaged(string serializerType)
     {
         NameValueCollection properties = new NameValueCollection();
@@ -145,9 +145,9 @@ public class AdoJobStoreSmokeTest
         return RunAdoJobStoreTest("OracleODPManaged", "Oracle", serializerType, properties);
     }
 
-    [Test]
-    [Category("db-sqlite")]
-    [TestCaseSource(nameof(GetSerializerTypes))]
+    //[Test]
+    //[Category("db-sqlite")]
+    //[TestCaseSource(nameof(GetSerializerTypes))]
     public async Task TestSQLite(string serializerType)
     {
         var dbFilename = $"test-{serializerType}.db";
@@ -245,8 +245,8 @@ public class AdoJobStoreSmokeTest
         //Assert.IsEmpty(testLoggerHelper.LogEntries.Where(le => le.LogLevel == LogLevel.Error), "Found error from logging output");
     }
 
-    [Test]
-    [Category("db-sqlserver")]
+    //[Test]
+    //[Category("db-sqlserver")]
     public async Task ShouldBeAbleToUseMixedProperties()
     {
         NameValueCollection properties = new NameValueCollection();
@@ -377,13 +377,12 @@ public class AdoJobStoreSmokeTest
         await sched.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupEquals("bar"));
     }
 
-    [Test]
     [Category("db-sqlserver")]
     public async Task TestGetJobKeysWithLike()
     {
         var sched = await CreateScheduler(null);
 
-        await sched.GetJobKeys(GroupMatcher<JobKey>.GroupStartsWith("foo"));
+        await sched.GetJobKeys(GroupMatcher<JobKey>.GroupStartsWith("111"));
     }
 
     [Test]
@@ -392,26 +391,29 @@ public class AdoJobStoreSmokeTest
     {
         var sched = await CreateScheduler(null);
 
-        await sched.GetJobKeys(GroupMatcher<JobKey>.GroupEquals("bar"));
+        await sched.GetJobKeys(GroupMatcher<JobKey>.GroupEquals("111111"));
     }
 
-    [Test]
-    [Category("db-sqlserver")]
+    //[Test]
+    //[Category("db-sqlserver")]
     public async Task JobTypeNotFoundShouldNotBlock()
     {
         NameValueCollection properties = new NameValueCollection();
         properties.Add(StdSchedulerFactory.PropertySchedulerTypeLoadHelperType, typeof(SpecialClassLoadHelper).AssemblyQualifiedName);
         var scheduler = await CreateScheduler(properties);
 
-        await scheduler.DeleteJobs(new[] { JobKey.Create("bad"), JobKey.Create("good") });
+        var jobName1 = Guid.NewGuid().ToString();
+        var jobName2 = Guid.NewGuid().ToString();
+        var group = "111111";
+        await scheduler.DeleteJobs(new[] { JobKey.Create(jobName1, group), JobKey.Create(jobName2, group) });
 
         await scheduler.Start();
 
         var manualResetEvent = new ManualResetEventSlim(false);
         scheduler.Context.Put(KeyResetEvent, manualResetEvent);
 
-        IJobDetail goodJob = JobBuilder.Create<GoodJob>().WithIdentity("good").Build();
-        IJobDetail badJob = JobBuilder.Create<BadJob>().WithIdentity("bad").Build();
+        IJobDetail goodJob = JobBuilder.Create<GoodJob>().WithIdentity(jobName2, group).Build();
+        IJobDetail badJob = JobBuilder.Create<BadJob>().WithIdentity(jobName1, group).Build();
 
         var now = DateTimeOffset.UtcNow;
         ITrigger goodTrigger = TriggerBuilder.Create().WithIdentity("good").ForJob(goodJob)

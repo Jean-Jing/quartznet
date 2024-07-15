@@ -4,15 +4,15 @@
 
     <pre-processing-commands>
         <delete-job>
-            <name>testjob1MissingName</name>
-            <group>DEFAULT</group>
+            <name>04408b2c-bc52-4dca-939b-431adaa92e21</name>
+            <group>111111</group>
         </delete-job>
     </pre-processing-commands>
 
 	<schedule>
 		<job>
-			<name>job1</name>
-			<group>DEFAULT</group>
+			<name>04408b2c-bc52-4dca-939b-431adaa92e21</name>
+			<group>111111</group>
 			<job-type>Quartz.Job.NoOpJob, Quartz</job-type>
 			<job-data-map>
 				<entry><key>foo</key><value>bar</value></entry>
@@ -22,8 +22,8 @@
 			<simple>
 				<name>job1</name>
 				<group>DEFAULT</group>
-				<job-name>job1</job-name>
-				<job-group>DEFAULT</job-group>
+				<job-name>04408b2c-bc52-4dca-939b-431adaa92e21</job-name>
+				<job-group>111111</job-group>
 				<repeat-count>-1</repeat-count>
 				<repeat-interval>1500</repeat-interval>
 			</simple>

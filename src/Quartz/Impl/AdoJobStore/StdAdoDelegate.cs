@@ -392,7 +392,7 @@ public partial class StdAdoDelegate : StdAdoConstants, IDriverDelegate, IDbAcces
         var list = new HashSet<JobKey>();
         while (await rs.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
-            list.Add(new JobKey(rs.GetGuid(0).ToString(), rs.GetString(1)));
+            list.Add(new JobKey(rs.GetGuid(0).ToString(), rs.GetInt32(1).ToString()));
         }
         return list;
     }

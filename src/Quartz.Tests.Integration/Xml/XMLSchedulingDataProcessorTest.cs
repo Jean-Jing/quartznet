@@ -295,7 +295,7 @@ public class XMLSchedulingDataProcessorTest
         try
         {
             await processor.ProcessStreamAndScheduleJobs(ReadJobXmlFromEmbeddedResource("SimpleTriggerNoRepeat.xml"), scheduler);
-            var jobKeys = await scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupEquals("DEFAULT"));
+            var jobKeys = await scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupEquals("111111"));
             Assert.That(jobKeys.Count, Is.EqualTo(1));
             var triggerKeys = await scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupEquals("DEFAULT"));
             Assert.That(triggerKeys.Count, Is.EqualTo(1));
@@ -325,13 +325,13 @@ public class XMLSchedulingDataProcessorTest
 
         try
         {
-            string jobName = "job1";
+            string jobName = "04408b2c-bc52-4dca-939b-431adaa92e21";
             IJobDetail jobDetail = JobBuilder.Create<NoOpJob>()
-                .WithIdentity(jobName, "DEFAULT")
+                .WithIdentity(jobName, "111111")
                 .UsingJobData("foo", "foo")
                 .Build();
             ITrigger trigger = TriggerBuilder.Create()
-                .WithIdentity(jobName, "DEFAULT")
+                .WithIdentity("job1", "DEFAULT")
                 .WithSchedule(CronScheduleBuilder.CronSchedule("* * * * * ?"))
                 .Build();
 
@@ -383,13 +383,13 @@ public class XMLSchedulingDataProcessorTest
         IScheduler scheduler = await CreateDbBackedScheduler();
         try
         {
-            string jobName = "job1";
+            string jobName = "04408b2c-bc52-4dca-939b-431adaa92e25";
             IJobDetail jobDetail = JobBuilder.Create<NoOpJob>()
-                .WithIdentity(jobName, "DEFAULT")
+                .WithIdentity(jobName, "111111")
                 .UsingJobData("foo", "foo")
                 .Build();
             ITrigger trigger = TriggerBuilder.Create()
-                .WithIdentity(jobName, "DEFAULT")
+                .WithIdentity("04408b2c-bc52-4dca-939b-431adaa92e25", "DEFAULT")
                 .WithSchedule(CronScheduleBuilder.CronSchedule("* * * * * ?"))
                 .Build();
 

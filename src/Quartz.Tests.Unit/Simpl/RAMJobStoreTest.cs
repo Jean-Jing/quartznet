@@ -51,7 +51,7 @@ public class RAMJobStoreTest
 
         fJobDetail = JobBuilder.Create()
             .OfType<NoOpJob>()
-            .WithIdentity(new JobKey("job1", "jobGroup1"))
+            .WithIdentity(new JobKey("04408b2c-bc52-4dca-939b-431adaa92e21", "111111"))
             .StoreDurably(true)
             .Build();
 

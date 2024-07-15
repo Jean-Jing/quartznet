@@ -64,11 +64,11 @@ internal static class DataReaderExtensions
     public static Guid GetGuid(this IDataReader reader, string columnName)
     {
         object columnValue = reader[columnName];
-        if (columnValue == DBNull.Value)
+        if (columnValue == DBNull.Value || !Guid.TryParse(columnValue.ToString(), out Guid result))
         {
             return Guid.Empty;
         }
 
-        return (Guid)columnValue;
+        return result;
     }
 }
